@@ -58,11 +58,11 @@ public class DriveSubsystem extends SubsystemBase {
     // config.smartCurrentLimit(DRIVE_MOTOR_CURRENT_LIMIT);
     TalonFXConfiguration rightConfig = new TalonFXConfiguration()
       .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(DRIVE_MOTOR_CURRENT_LIMIT))
-      .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive));
+      .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
     rightLeader.getConfigurator().apply(rightConfig);
     rightFollower.getConfigurator().apply(rightConfig);
     
-    TalonFXConfiguration leftConfig = rightConfig.withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
+    TalonFXConfiguration leftConfig = rightConfig.withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive));
     leftLeader.getConfigurator().apply(leftConfig);
     leftFollower.getConfigurator().apply(leftConfig);
 

@@ -42,7 +42,7 @@ public class FuelSubsystem extends SubsystemBase {
     // launcherConfig.smartCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT);
     // intakeLauncherRoller.configure(launcherConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     TalonFXConfiguration feederConfig = new TalonFXConfiguration()
-        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive))
+        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
         .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT));
     feederRoller.getConfigurator().apply(feederConfig);
 
