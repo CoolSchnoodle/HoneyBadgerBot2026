@@ -4,6 +4,7 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.FuelSubsystem;
@@ -24,9 +25,8 @@ public class SpinUp extends Command {
   // appropriate values for intaking
   @Override
   public void initialize() {
-    fuelSubsystem
-        .setIntakeLauncherRoller(
-            SmartDashboard.getNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE));
+    double velocitySetpoint = SmartDashboard.getNumber("Launching launcher velocity setpoint", 5.0);
+    fuelSubsystem.setLauncherPID(velocitySetpoint);
     fuelSubsystem.setFeederRoller(SmartDashboard.getNumber("Launching spin-up feeder value", SPIN_UP_FEEDER_VOLTAGE));
   }
 

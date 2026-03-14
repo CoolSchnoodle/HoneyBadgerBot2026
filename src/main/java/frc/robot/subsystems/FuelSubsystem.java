@@ -11,12 +11,16 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.Constants.FuelConstants.*;
 
 public class FuelSubsystem extends SubsystemBase {
@@ -77,6 +81,21 @@ public class FuelSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+  }
+
+  public void setLauncherPID(double velocitySetpoint) {
+    intakeLauncherRoller.setControl(new VelocityDutyCycle(RotationsPerSecond.of(velocitySetpoint)));    
+  }
+  
+  public boolean launcherPIDReady() {
+    return intakeLauncherRoller.getClosedLoopError().getValueAsDouble() < 2;
+  }
+
+  public double luancherVelocity() {
+    return intakeLauncherRoller.getVelocity().getValueAsDouble();
+  }
+
+  public void setIntakeLauncherSpeed(double speed) {
+    intakeLauncherRoller.set(speed);
   }
 }
