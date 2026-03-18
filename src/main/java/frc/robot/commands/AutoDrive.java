@@ -11,14 +11,14 @@ import frc.robot.subsystems.DriveSubsystem;
 public class AutoDrive extends Command {
   /** Creates a new Drive. */
   DriveSubsystem driveSubsystem;
-  double xSpeed, zRotation;
+  double leftSpeed, rightSpeed;
 
-  public AutoDrive(DriveSubsystem driveSystem, double xSpeed, double zRotation) {
+  public AutoDrive(DriveSubsystem driveSystem, double leftSpeed, double rightSpeed) {
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(driveSystem);
     driveSubsystem = driveSystem;
-    this.xSpeed = xSpeed;
-    this.zRotation = zRotation;
+    this.leftSpeed = leftSpeed;
+    this.rightSpeed = rightSpeed;
   }
 
   // Called when the command is initially scheduled.
@@ -31,13 +31,13 @@ public class AutoDrive extends Command {
   // arcade drive object
   @Override
   public void execute() {
-    driveSubsystem.driveArcade(xSpeed, zRotation);
+    driveSubsystem.driveTank(leftSpeed, rightSpeed);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    driveSubsystem.driveArcade(0, 0);
+    driveSubsystem.driveTank(0, 0);
   }
 
   // Returns true when the command should end.
