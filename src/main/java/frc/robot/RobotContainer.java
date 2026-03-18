@@ -6,6 +6,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import static frc.robot.Constants.OperatorConstants.*;
@@ -73,6 +74,10 @@ public class RobotContainer {
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
     operatorController.a().whileTrue(new Eject(fuelSubsystem));
+
+    operatorController.leftTrigger()
+      .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 2))
+      .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 0.5));
 
     // Set the default command for the drive subsystem to the command provided by
     // factory with the values provided by the joystick axes on the driver
