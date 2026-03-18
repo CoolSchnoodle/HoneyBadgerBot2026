@@ -25,9 +25,9 @@ public class SpinUp extends Command {
   // appropriate values for intaking
   @Override
   public void initialize() {
-    double velocitySetpoint = SmartDashboard.getNumber("Launching launcher velocity setpoint", 3.0);
+    double velocitySetpoint = SmartDashboard.getNumber("SpinUp launcher velocity setpoint", SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND);
     fuelSubsystem.setLauncherPID(velocitySetpoint);
-    fuelSubsystem.setFeederRoller(SmartDashboard.getNumber("Launching spin-up feeder value", SPIN_UP_FEEDER_VOLTAGE));
+    // fuelSubsystem.setFeederRoller(SmartDashboard.getNumber("Launching spin-up feeder value", SPIN_UP_FEEDER_VOLTAGE));
   }
 
   // Called every time the scheduler runs while the command is scheduled. This
