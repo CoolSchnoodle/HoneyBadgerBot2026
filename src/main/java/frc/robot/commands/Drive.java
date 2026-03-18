@@ -35,13 +35,14 @@ public class Drive extends Command {
   // controllable.
   @Override
   public void execute() {
-    driveSubsystem.driveTank(-controller.getLeftY() * DRIVE_SCALING, -controller.getRightY() * DRIVE_SCALING);
+    double rotation = -controller.getRightX();
+    driveSubsystem.driveArcade(-controller.getLeftY() * DRIVE_SCALING, rotation*Math.abs(rotation) * ROTATION_SCALING);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    driveSubsystem.driveTank(0, 0);
+    driveSubsystem.driveArcade(0, 0);
   }
 
   // Returns true when the command should end.

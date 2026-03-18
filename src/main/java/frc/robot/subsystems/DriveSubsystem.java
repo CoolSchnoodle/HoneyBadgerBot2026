@@ -70,8 +70,8 @@ public class DriveSubsystem extends SubsystemBase {
   public void periodic() {
   }
 
-  public void driveTank(double leftSpeed, double rightSpeed) {
-    drive.tankDrive(leftSpeed, rightSpeed*1.2);
+  public void driveArcade(double xSpeed, double zRotation) {
+    drive.arcadeDrive(xSpeed, zRotation);
   }
 
 }
