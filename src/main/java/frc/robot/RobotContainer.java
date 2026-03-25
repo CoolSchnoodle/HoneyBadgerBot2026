@@ -54,8 +54,8 @@ public class RobotContainer {
     // Set the options to show up in the Dashboard for selecting auto modes. If you
     // add additional auto modes you can add additional lines here with
     // autoChooser.addOption
-    autoChooser.addOption("Boring auto", new ExampleAuto(driveSubsystem, fuelSubsystem));
-    autoChooser.setDefaultOption("Disruption auto", new SequentialCommandGroup(new AutoDrive(driveSubsystem, 0.7, 0).withTimeout(0.7), new AutoDrive(driveSubsystem, 1, 0)));
+    autoChooser.setDefaultOption("Boring auto", new ExampleAuto(driveSubsystem, fuelSubsystem));
+    autoChooser.addOption("Disruption auto", new SequentialCommandGroup(new AutoDrive(driveSubsystem, 0.7, 0).withTimeout(0.7), new AutoDrive(driveSubsystem, 1, 0)));
     SmartDashboard.putData("Autonomous", autoChooser);
   }
 
