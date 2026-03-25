@@ -5,11 +5,15 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import static frc.robot.Constants.OperatorConstants.*;
+
+import frc.robot.commands.AutoDrive;
 import frc.robot.commands.Drive;
 import frc.robot.commands.Eject;
 import frc.robot.commands.ExampleAuto;
@@ -50,7 +54,9 @@ public class RobotContainer {
     // Set the options to show up in the Dashboard for selecting auto modes. If you
     // add additional auto modes you can add additional lines here with
     // autoChooser.addOption
-    autoChooser.setDefaultOption("Autonomous", new ExampleAuto(driveSubsystem, fuelSubsystem));
+    autoChooser.addOption("Boring auto", new ExampleAuto(driveSubsystem, fuelSubsystem));
+    autoChooser.setDefaultOption("Disruption auto", new SequentialCommandGroup(new AutoDrive(driveSubsystem, 0.7, 0).withTimeout(0.7), new AutoDrive(driveSubsystem, 1, 0)));
+    SmartDashboard.putData("Autonomous", autoChooser);
   }
 
   /**
@@ -70,14 +76,29 @@ public class RobotContainer {
     operatorController.leftBumper().whileTrue(new Intake(fuelSubsystem));
     // While the right bumper on the operator controller is held, spin up for 1
     // second, then launch fuel. When the button is released, stop.
-    operatorController.rightBumper().whileTrue(new LaunchSequence(fuelSubsystem));
+    operatorController.rightBumper()
+      .whileTrue(new LaunchSequence(fuelSubsystem));
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
     operatorController.a().whileTrue(new Eject(fuelSubsystem));
+    operatorController.rightTrigger(0.25)
+      .onTrue(new InstantCommand(() -> {
+        Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += Constants.FuelConstants.FAR_SHOT_ADJUSTMENT;
+      }))
+      .onFalse(new InstantCommand(() -> {
+        Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT -= Constants.FuelConstants.FAR_SHOT_ADJUSTMENT;
+      }));
+    operatorController.y()
+      .onTrue(new InstantCommand(() -> {
+        Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += Constants.FuelConstants.RETURN_SHOT_ADJUSTMENT;
+      }))
+      .onFalse(new InstantCommand(() -> {
+        Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT -= Constants.FuelConstants.RETURN_SHOT_ADJUSTMENT;
+      }));
 
-    operatorController.leftTrigger()
-      .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 2))
-      .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 0.5));
+    driverController.leftTrigger()
+      .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING /= 1.5))
+      .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 1.5));
 
     // Set the default command for the drive subsystem to the command provided by
     // factory with the values provided by the joystick axes on the driver

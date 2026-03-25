@@ -4,7 +4,6 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.FuelSubsystem;
@@ -15,6 +14,7 @@ public class SpinUp extends Command {
   /** Creates a new Intake. */
 
   FuelSubsystem fuelSubsystem;
+  double launcherSpeedAdjustment;
 
   public SpinUp(FuelSubsystem fuelSystem) {
     addRequirements(fuelSystem);
@@ -25,7 +25,8 @@ public class SpinUp extends Command {
   // appropriate values for intaking
   @Override
   public void initialize() {
-    double velocitySetpoint = SmartDashboard.getNumber("SpinUp launcher velocity setpoint", SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND);
+    launcherSpeedAdjustment = LAUNCHER_SPEED_ADJUSTMENT;
+    double velocitySetpoint = SmartDashboard.getNumber("SpinUp launcher velocity setpoint", SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND) + launcherSpeedAdjustment;
     fuelSubsystem.setLauncherPID(velocitySetpoint);
     // fuelSubsystem.setFeederRoller(SmartDashboard.getNumber("Launching spin-up feeder value", SPIN_UP_FEEDER_VOLTAGE));
   }
@@ -34,6 +35,12 @@ public class SpinUp extends Command {
   // command doesn't require updating any values while running
   @Override
   public void execute() {
+    if (launcherSpeedAdjustment == LAUNCHER_SPEED_ADJUSTMENT) {
+      return;
+    }
+    launcherSpeedAdjustment = LAUNCHER_SPEED_ADJUSTMENT;
+    double velocitySetpoint = SmartDashboard.getNumber("SpinUp launcher velocity setpoint", SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND) + launcherSpeedAdjustment;
+    fuelSubsystem.setLauncherPID(velocitySetpoint);
   }
 
   // Called once the command ends or is interrupted. Stop the rollers

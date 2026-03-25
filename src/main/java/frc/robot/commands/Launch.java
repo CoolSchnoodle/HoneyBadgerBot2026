@@ -6,6 +6,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.subsystems.FuelSubsystem;
 import static frc.robot.Constants.FuelConstants.*;
 
@@ -14,10 +15,12 @@ public class Launch extends Command {
   /** Creates a new Intake. */
 
   FuelSubsystem fuelSubsystem;
+  double launcherSpeedAdjustment;
 
   public Launch(FuelSubsystem fuelSystem) {
     addRequirements(fuelSystem);
     this.fuelSubsystem = fuelSystem;
+    launcherSpeedAdjustment = Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT;
   }
 
   // Called when the command is initially scheduled. Set the rollers to the
@@ -25,18 +28,24 @@ public class Launch extends Command {
   @Override
   public void initialize() {
     fuelSubsystem.setLauncherPID(
-      SmartDashboard.getNumber("Launching launcher rotations per second", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND));
+      LAUNCHER_SPEED_ADJUSTMENT
+      + SmartDashboard.getNumber("Launching launcher rotations per second", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND));
     //fuelSubsystem
     //    .setIntakeLauncherRoller(
     //        SmartDashboard.getNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE));
     fuelSubsystem.setFeederRoller(SmartDashboard.getNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE));
-    fuelSubsystem.setLauncherPID(SmartDashboard.getNumber("Launching launcher rotations per second", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND));
   }
 
   // Called every time the scheduler runs while the command is scheduled. This
   // command doesn't require updating any values while running
   @Override
   public void execute() {
+    if (launcherSpeedAdjustment == LAUNCHER_SPEED_ADJUSTMENT) {
+      return;
+    }
+    launcherSpeedAdjustment = LAUNCHER_SPEED_ADJUSTMENT;
+    double velocitySetpoint = SmartDashboard.getNumber("SpinUp launcher velocity setpoint", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND) + launcherSpeedAdjustment;
+    fuelSubsystem.setLauncherPID(velocitySetpoint);
   }
 
   // Called once the command ends or is interrupted. Stop the rollers

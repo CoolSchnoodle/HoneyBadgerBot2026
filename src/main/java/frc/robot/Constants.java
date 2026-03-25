@@ -24,7 +24,7 @@ public final class Constants {
 
     // Current limit for drivetrain motors. 60A is a reasonable maximum to reduce
     // likelihood of tripping breakers or damaging CIM motors
-    public static final int DRIVE_MOTOR_CURRENT_LIMIT = 120;
+    public static final int DRIVE_MOTOR_CURRENT_LIMIT = 60;
   }
 
   public static final class FuelConstants {
@@ -43,8 +43,12 @@ public final class Constants {
     public static final double INTAKING_INTAKE_VOLTAGE = 5;
     public static final double LAUNCHING_FEEDER_VOLTAGE = -12;
     //public static final double LAUNCHING_LAUNCHER_VOLTAGE = 10.6;
-    public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = 65;
-    public static final double LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND = 50;
+    // not final due to evil
+    public static double LAUNCHER_SPEED_ADJUSTMENT = 0;
+    public static final double FAR_SHOT_ADJUSTMENT = 12;
+    public static final double RETURN_SHOT_ADJUSTMENT = 12;
+    public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = 51.4;
+    public static final double LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND = 51.4;
 
     public static final double SPIN_UP_FEEDER_VOLTAGE = -6;
     public static final double SPIN_UP_SECONDS = 1;
@@ -61,6 +65,6 @@ public final class Constants {
 
     // Yeah so this one isn't actually constant, don't worry about it
     public static double DRIVE_SCALING = 1;
-    public static final double ROTATION_SCALING = .8;
+    public static final double ROTATION_SCALING = .6;
   }
 }
