@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -58,12 +59,12 @@ public class FuelSubsystem extends SubsystemBase {
 
   // A method to set the voltage of the intake roller
   public void setIntakeLauncherRoller(double voltage) {
-    intakeLauncherRoller.setVoltage(voltage);
+    intakeLauncherRoller.setControl(new VoltageOut(voltage));
   }
 
   // A method to set the voltage of the intake roller
   public void setFeederRoller(double voltage) {
-    feederRoller.setVoltage(voltage);
+    feederRoller.setControl(new VoltageOut(voltage));
   }
 
   // A method to stop the rollers
