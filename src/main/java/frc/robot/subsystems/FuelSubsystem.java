@@ -30,7 +30,7 @@ public class FuelSubsystem extends SubsystemBase {
     // create the configuration for the feeder roller, set a current limit and apply
     // the config to the controller
     TalonFXConfiguration feederConfig = new TalonFXConfiguration()
-      .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive))
+      .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
       .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(FEEDER_MOTOR_CURRENT_LIMIT));
     feederRoller.getConfigurator().apply(feederConfig);
 
@@ -38,9 +38,8 @@ public class FuelSubsystem extends SubsystemBase {
     // the motor to inverted so that positive values are used for both intaking and
     // launching, and apply the config to the controller
 
-    // SparkMaxConfig launcherConfig = new SparkMaxConfig();
     TalonFXConfiguration launcherConfig = new TalonFXConfiguration()
-        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive))
+        .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
         .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT));
     intakeLauncherRoller.getConfigurator().apply(launcherConfig);
 
