@@ -14,11 +14,11 @@ import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
@@ -94,19 +94,28 @@ public class DriveSubsystem extends SubsystemBase {
       LimelightHelpers.PoseEstimate estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
 
       if (estimate.tagCount == 0) break vision;
-      if (estimate.tagCount == 1 && (estimate.rawFiducials[0].ambiguity > 0.7 || estimate.rawFiducials[0].distToCamera > 3)) break vision;
-        
+      if (
+        estimate.tagCount == 1
+        && (estimate.rawFiducials[0].ambiguity > 0.7 || estimate.rawFiducials[0].distToCamera > 3)
+      ) break vision;
+      
       lastPose = estimate.pose;
     }
 
-    LocationUtils.getDirectionToLocation(lastPose.getTranslation(), LocationUtils.getCurrentHubLocation().toTranslation2d());
   }
 
   public void driveArcade(double xSpeed, double zRotation) {
     drive.arcadeDrive(xSpeed, zRotation);
   }
 
+  public Command rotateToHubCommand() {
+    return new RunCommand(() -> {
+      Rotation2d hubDir = LocationUtils.getDirectionToLocation(lastPose.getTranslation(), LocationUtils.getCurrentHubLocation().toTranslation2d());
+      rotateTo(hubDir);
+    }, this);
+  }
+
   public void rotateTo(Rotation2d rotation) {
-    drive.arcadeDrive(0, rotationController.calculate(gyro.getAngle(), rotation.getRadians()));
+    drive.arcadeDrive(0, rotationController.calculate(gyro.getAngle(), rotation.getRadians()), false);
   }
 }

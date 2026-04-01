@@ -99,6 +99,9 @@ public class RobotContainer {
     driverController.leftTrigger()
       .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING /= 1.5))
       .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 1.5));
+    
+    driverController.a()
+      .whileTrue(driveSubsystem.rotateToHubCommand());
 
     // Set the default command for the drive subsystem to the command provided by
     // factory with the values provided by the joystick axes on the driver
