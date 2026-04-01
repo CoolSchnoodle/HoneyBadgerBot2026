@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityDutyCycle;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -41,7 +42,8 @@ public class FuelSubsystem extends SubsystemBase {
 
     TalonFXConfiguration launcherConfig = new TalonFXConfiguration()
         .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
-        .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT));
+        .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT))
+        .withSlot0(new Slot0Configs().withKP(20));
     intakeLauncherRoller.getConfigurator().apply(launcherConfig);
 
     // put default values for various fuel operations onto the dashboard
@@ -82,7 +84,7 @@ public class FuelSubsystem extends SubsystemBase {
   }
   
   public boolean launcherPIDReady() {
-    return intakeLauncherRoller.getClosedLoopError().getValueAsDouble() < 2;
+    return intakeLauncherRoller.getClosedLoopError().getValueAsDouble() < 1;
   }
 
   public double luancherVelocity() {

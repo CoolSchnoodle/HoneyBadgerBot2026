@@ -6,6 +6,7 @@ package frc.robot.commands;
 
 import static frc.robot.Constants.OperatorConstants.*;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.DriveSubsystem;
@@ -15,12 +16,14 @@ public class Drive extends Command {
   /** Creates a new Drive. */
   DriveSubsystem driveSubsystem;
   CommandXboxController controller;
+  SlewRateLimiter limiter;
 
   public Drive(DriveSubsystem driveSystem, CommandXboxController driverController) {
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(driveSystem);
     driveSubsystem = driveSystem;
     controller = driverController;
+    limiter = new SlewRateLimiter(0.4);
   }
 
   // Called when the command is initially scheduled.
@@ -36,7 +39,9 @@ public class Drive extends Command {
   @Override
   public void execute() {
     double rotation = -controller.getRightX();
-    driveSubsystem.driveArcade(-controller.getLeftY() * DRIVE_SCALING, rotation*Math.abs(rotation) * ROTATION_SCALING);
+    double forward = -controller.getLeftY() * DRIVE_SCALING;
+    forward = limiter.calculate(forward);
+    driveSubsystem.driveArcade(forward, rotation * ROTATION_SCALING);
   }
 
   // Called once the command ends or is interrupted.
