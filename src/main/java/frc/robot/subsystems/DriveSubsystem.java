@@ -10,10 +10,19 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.studica.frc.AHRS;
+import com.studica.frc.AHRS.NavXComType;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.LimelightHelpers;
+import frc.robot.LocationUtils;
 
 import static frc.robot.Constants.DriveConstants.*;
 
@@ -26,6 +35,10 @@ public class DriveSubsystem extends SubsystemBase {
   private final TalonFX rightFollower;
 
   private final DifferentialDrive drive;
+
+  private final AHRS gyro = new AHRS(NavXComType.kMXP_SPI);
+  private PIDController rotationController = new PIDController(0.1, 0, 0);
+  private Pose2d lastPose = null;
 
   public DriveSubsystem() {
     // create brushed motors for drive
@@ -70,14 +83,30 @@ public class DriveSubsystem extends SubsystemBase {
     leftFollower.getConfigurator().apply(leftConfig);
     rightLeader.getConfigurator().apply(rightConfig);
     rightFollower.getConfigurator().apply(rightConfig);
-}
+
+    gyro.reset();
+    rotationController.enableContinuousInput(-Math.PI, Math.PI);
+  }
 
   @Override
   public void periodic() {
+    vision: {
+      LimelightHelpers.PoseEstimate estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+
+      if (estimate.tagCount == 0) break vision;
+      if (estimate.tagCount == 1 && (estimate.rawFiducials[0].ambiguity > 0.7 || estimate.rawFiducials[0].distToCamera > 3)) break vision;
+        
+      lastPose = estimate.pose;
+    }
+
+    LocationUtils.getDirectionToLocation(lastPose.getTranslation(), LocationUtils.getCurrentHubLocation().toTranslation2d());
   }
 
   public void driveArcade(double xSpeed, double zRotation) {
     drive.arcadeDrive(xSpeed, zRotation);
   }
 
+  public void rotateTo(Rotation2d rotation) {
+    drive.arcadeDrive(0, rotationController.calculate(gyro.getAngle(), rotation.getRadians()));
+  }
 }
