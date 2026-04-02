@@ -13,9 +13,12 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.Constants.FuelConstants.*;
 
@@ -93,5 +96,20 @@ public class FuelSubsystem extends SubsystemBase {
 
   public void setIntakeLauncherSpeed(double speed) {
     intakeLauncherRoller.set(speed);
+  }
+
+  static final double NEAR_SETPOINT_DIST = Meters.of(3).magnitude();
+  static final double FAR_SETPOINT_DIST = NEAR_SETPOINT_DIST + 2;
+  static final double NEAR_SETPOINT_SPEED = Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND;
+  static final double FAR_SETPOINT_SPEED = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND * 1.2;
+  public double shooterSpeedForDistance(Distance distance) {
+    double nearSetpointDist = SmartDashboard.getNumber("Near shooter setpoint distance (m)", NEAR_SETPOINT_DIST);
+    double farSetpointDist = SmartDashboard.getNumber("Far shooter setpoint dist (m)", FAR_SETPOINT_DIST);
+    double nearSetpointSpeed = SmartDashboard.getNumber("Near shooter setpoint rps", NEAR_SETPOINT_SPEED);
+    double farSetpointSpeed = SmartDashboard.getNumber("Far shooter setpoint rps", FAR_SETPOINT_SPEED);
+
+    double slope = (farSetpointSpeed-nearSetpointSpeed) / (farSetpointDist-nearSetpointDist);
+    double distMeters = distance.magnitude();
+    return nearSetpointSpeed + (slope * (distMeters - nearSetpointDist));
   }
 }

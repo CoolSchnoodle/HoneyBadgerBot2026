@@ -16,6 +16,7 @@ import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -117,5 +118,12 @@ public class DriveSubsystem extends SubsystemBase {
 
   public void rotateTo(Rotation2d rotation) {
     drive.arcadeDrive(0, rotationController.calculate(gyro.getAngle(), rotation.getRadians()), false);
+  }
+
+  public Distance distanceToHub() {
+    return LocationUtils.getDistanceToLocation(
+      lastPose.getTranslation(),
+      LocationUtils.getCurrentHubLocation().toTranslation2d()
+    );
   }
 }

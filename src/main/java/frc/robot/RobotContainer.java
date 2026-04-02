@@ -77,18 +77,11 @@ public class RobotContainer {
     // While the right bumper on the operator controller is held, spin up for 1
     // second, then launch fuel. When the button is released, stop.
     operatorController.rightBumper()
-      .whileTrue(new LaunchSequence(fuelSubsystem));
+      .whileTrue(new LaunchSequence(fuelSubsystem, fuelSubsystem.shooterSpeedForDistance(driveSubsystem.distanceToHub())));
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
     operatorController.a().whileTrue(new Eject(fuelSubsystem));
     operatorController.rightTrigger(0.25)
-      .onTrue(new InstantCommand(() -> {
-        Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += Constants.FuelConstants.FAR_SHOT_ADJUSTMENT;
-      }))
-      .onFalse(new InstantCommand(() -> {
-        Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT -= Constants.FuelConstants.FAR_SHOT_ADJUSTMENT;
-      }));
-    operatorController.y()
       .onTrue(new InstantCommand(() -> {
         Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += Constants.FuelConstants.RETURN_SHOT_ADJUSTMENT;
       }))
@@ -97,8 +90,8 @@ public class RobotContainer {
       }));
 
     driverController.leftTrigger()
-      .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING /= 1.5))
-      .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 1.5));
+      .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING /= 2))
+      .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 2));
     
     driverController.a()
       .whileTrue(driveSubsystem.rotateToHubCommand());

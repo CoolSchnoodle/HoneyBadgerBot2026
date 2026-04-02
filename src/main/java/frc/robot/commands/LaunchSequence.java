@@ -4,8 +4,9 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.Constants.FuelConstants;
+import frc.robot.Constants;
 import frc.robot.subsystems.FuelSubsystem;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -14,11 +15,20 @@ import frc.robot.subsystems.FuelSubsystem;
 public class LaunchSequence extends SequentialCommandGroup {
   /** Creates a new LaunchSequence. */
   public LaunchSequence(FuelSubsystem fuelSubsystem) {
-    // Add your commands in the addCommands() call, e.g.
-    // addCommands(new FooCommand(), new BarCommand());
-    addCommands(
-        new SpinUp(fuelSubsystem).until(() -> fuelSubsystem.launcherPIDReady()),
-        new Launch(fuelSubsystem)
-    );
+    SpinUp spinUp = new SpinUp(fuelSubsystem,
+      SmartDashboard.getNumber("Spin-up launcher rps", Constants.FuelConstants.SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND));
+    Launch launch = new Launch(fuelSubsystem,
+      SmartDashboard.getNumber("Launching launcher rps", Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND));
+    addCommands(spinUp, launch);
+  }
+  public LaunchSequence(FuelSubsystem fuelSubsystem, double launchingRps) {
+    SpinUp spinUp = new SpinUp(fuelSubsystem, launchingRps + 1.25);
+    Launch launch = new Launch(fuelSubsystem, launchingRps); 
+    addCommands(spinUp, launch);
+  }
+  public LaunchSequence(FuelSubsystem fuelSubsystem, double launchingRps, double spinUpRps) {
+    SpinUp spinUp = new SpinUp(fuelSubsystem, spinUpRps);
+    Launch launch = new Launch(fuelSubsystem, launchingRps); 
+    addCommands(spinUp, launch);
   }
 }

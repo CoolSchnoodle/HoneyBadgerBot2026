@@ -16,23 +16,27 @@ public class Launch extends Command {
 
   FuelSubsystem fuelSubsystem;
   double launcherSpeedAdjustment;
+  double launchingSpeed;
 
+  public Launch(FuelSubsystem fuelSystem, double launchingSpeed) {
+    addRequirements(fuelSystem);
+    this.fuelSubsystem = fuelSystem;
+    launcherSpeedAdjustment = Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT;
+    this.launchingSpeed = launchingSpeed;
+  }
   public Launch(FuelSubsystem fuelSystem) {
     addRequirements(fuelSystem);
     this.fuelSubsystem = fuelSystem;
     launcherSpeedAdjustment = Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT;
-  }
+    this.launchingSpeed = Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND;
+}
 
   // Called when the command is initially scheduled. Set the rollers to the
   // appropriate values for intaking
   @Override
   public void initialize() {
     fuelSubsystem.setLauncherPID(
-      LAUNCHER_SPEED_ADJUSTMENT
-      + SmartDashboard.getNumber("Launching launcher rotations per second", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND));
-    //fuelSubsystem
-    //    .setIntakeLauncherRoller(
-    //        SmartDashboard.getNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE));
+      launcherSpeedAdjustment + launchingSpeed);
     fuelSubsystem.setFeederRoller(SmartDashboard.getNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE));
   }
 
@@ -44,7 +48,7 @@ public class Launch extends Command {
       return;
     }
     launcherSpeedAdjustment = LAUNCHER_SPEED_ADJUSTMENT;
-    double velocitySetpoint = SmartDashboard.getNumber("SpinUp launcher velocity setpoint", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND) + launcherSpeedAdjustment;
+    double velocitySetpoint = launchingSpeed + launcherSpeedAdjustment;
     fuelSubsystem.setLauncherPID(velocitySetpoint);
   }
 
