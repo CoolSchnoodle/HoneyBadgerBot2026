@@ -29,7 +29,7 @@ public class Launch extends Command {
     this.fuelSubsystem = fuelSystem;
     launcherSpeedAdjustment = Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT;
     this.launchingSpeed = Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND;
-}
+  }
 
   // Called when the command is initially scheduled. Set the rollers to the
   // appropriate values for intaking

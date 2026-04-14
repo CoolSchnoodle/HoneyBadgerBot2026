@@ -18,13 +18,16 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.LocationUtils;
 
+import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.Constants.DriveConstants.*;
 
 import java.util.function.DoubleConsumer;
@@ -42,6 +45,8 @@ public class DriveSubsystem extends SubsystemBase {
   private Pose2d lastPose = null;
 
   public DriveSubsystem() {
+    SmartDashboard.putString("Last limelight reading", "None");
+
     // create brushed motors for drive
     leftLeader = new TalonFX(LEFT_LEADER_ID);
     leftFollower = new TalonFX(LEFT_FOLLOWER_ID);
@@ -94,12 +99,29 @@ public class DriveSubsystem extends SubsystemBase {
     vision: {
       LimelightHelpers.PoseEstimate estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
 
-      if (estimate.tagCount == 0) break vision;
+      if (estimate.tagCount == 0) {
+        SmartDashboard.putString("Last limelight reading", "No tags");
+        break vision;
+      }
       if (
         estimate.tagCount == 1
-        && (estimate.rawFiducials[0].ambiguity > 0.7 || estimate.rawFiducials[0].distToCamera > 3)
-      ) break vision;
-      
+        && estimate.rawFiducials[0].distToCamera > 3
+      ) {
+        SmartDashboard.putString("Last limelight reading", "Too far");
+      }
+      if (
+        estimate.tagCount == 1
+        && estimate.rawFiducials[0].ambiguity > 0.7
+      ) {
+        SmartDashboard.putString("Last limelight reading", "Too ambiguous");
+        break vision;
+      }
+      if (estimate.pose == null) {
+        SmartDashboard.putString("Last limelight reading", "null");
+        break vision;
+      }
+
+      SmartDashboard.putString("Last limelight reading", "Good");
       lastPose = estimate.pose;
     }
 
@@ -108,12 +130,38 @@ public class DriveSubsystem extends SubsystemBase {
   public void driveArcade(double xSpeed, double zRotation) {
     drive.arcadeDrive(xSpeed, zRotation);
   }
+  public void driveArcade(double xSpeed, double zRotation, boolean squareInputs) {
+    drive.arcadeDrive(xSpeed, zRotation, squareInputs);
+  }
+
+  class RotateToHubCommand extends Command {
+    Rotation2d hubDir;
+    DriveSubsystem driveSubsystem;
+
+    public RotateToHubCommand(DriveSubsystem drive) {
+      this.driveSubsystem = drive;
+      addRequirements(driveSubsystem);
+    }
+
+    @Override
+    public void initialize() {
+      if (driveSubsystem.lastPose == null) return;
+      this.hubDir = LocationUtils.getDirectionToLocation(lastPose.getTranslation(), LocationUtils.getCurrentHubLocation().toTranslation2d());
+    }
+
+    @Override
+    public void execute() {
+      driveSubsystem.rotateTo(hubDir);
+    }
+
+    @Override
+    public boolean isFinished() {
+      return false;
+    }
+  }
 
   public Command rotateToHubCommand() {
-    return new RunCommand(() -> {
-      Rotation2d hubDir = LocationUtils.getDirectionToLocation(lastPose.getTranslation(), LocationUtils.getCurrentHubLocation().toTranslation2d());
-      rotateTo(hubDir);
-    }, this);
+    return new RotateToHubCommand(this);
   }
 
   public void rotateTo(Rotation2d rotation) {
@@ -121,6 +169,7 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   public Distance distanceToHub() {
+    if (lastPose == null) return Meters.of(0);
     return LocationUtils.getDistanceToLocation(
       lastPose.getTranslation(),
       LocationUtils.getCurrentHubLocation().toTranslation2d()

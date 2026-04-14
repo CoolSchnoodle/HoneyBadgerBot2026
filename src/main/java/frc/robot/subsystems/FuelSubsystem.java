@@ -15,8 +15,14 @@ import com.ctre.phoenix6.signals.InvertedValue;
 
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
+import frc.robot.commands.Drive;
+import frc.robot.commands.LaunchSequence;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -28,6 +34,11 @@ public class FuelSubsystem extends SubsystemBase {
 
   /** Creates a new CANBallSubsystem. */
   public FuelSubsystem() {
+    SmartDashboard.putNumber("Near shooter setpoint distance (m)", NEAR_SETPOINT_DIST);
+    SmartDashboard.putNumber("Far shooter setpoint dist (m)", FAR_SETPOINT_DIST);
+    SmartDashboard.putNumber("Near shooter setpoint rps", NEAR_SETPOINT_SPEED);
+    SmartDashboard.putNumber("Far shooter setpoint rps", FAR_SETPOINT_SPEED);
+
     // create brushed motors for each of the motors on the launcher mechanism
     intakeLauncherRoller = new TalonFX(INTAKE_LAUNCHER_MOTOR_ID);
     feederRoller = new TalonFX(FEEDER_MOTOR_ID);
@@ -87,7 +98,7 @@ public class FuelSubsystem extends SubsystemBase {
   }
   
   public boolean launcherPIDReady() {
-    return intakeLauncherRoller.getClosedLoopError().getValueAsDouble() < 1;
+    return intakeLauncherRoller.getClosedLoopError().getValueAsDouble() < 0.5;
   }
 
   public double luancherVelocity() {
@@ -98,8 +109,8 @@ public class FuelSubsystem extends SubsystemBase {
     intakeLauncherRoller.set(speed);
   }
 
-  static final double NEAR_SETPOINT_DIST = Meters.of(3).magnitude();
-  static final double FAR_SETPOINT_DIST = NEAR_SETPOINT_DIST + 2;
+  static final double NEAR_SETPOINT_DIST = 2.74;
+  static final double FAR_SETPOINT_DIST = 4;
   static final double NEAR_SETPOINT_SPEED = Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND;
   static final double FAR_SETPOINT_SPEED = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND * 1.2;
   public double shooterSpeedForDistance(Distance distance) {
@@ -109,7 +120,61 @@ public class FuelSubsystem extends SubsystemBase {
     double farSetpointSpeed = SmartDashboard.getNumber("Far shooter setpoint rps", FAR_SETPOINT_SPEED);
 
     double slope = (farSetpointSpeed-nearSetpointSpeed) / (farSetpointDist-nearSetpointDist);
-    double distMeters = distance.magnitude();
-    return nearSetpointSpeed + (slope * (distMeters - nearSetpointDist));
+    double distMeters = distance.baseUnitMagnitude();
+    double speed = nearSetpointSpeed + (slope * (distMeters - nearSetpointDist));
+    SmartDashboard.putNumber("Calculated launcher speed", speed);
+    SmartDashboard.putNumber("Distance from hub", distMeters);
+    return speed;
+  }
+
+  class ShootAutoCommand extends Command {
+    FuelSubsystem fuelSubsystem;
+    DriveSubsystem driveSubsystem;
+    double speed;
+    double deadline;
+    Command launchCommand;
+
+    public ShootAutoCommand(FuelSubsystem fuel, DriveSubsystem drive) {
+      this.fuelSubsystem = fuel;
+      this.driveSubsystem = drive;
+      addRequirements(fuelSubsystem, driveSubsystem);
+      this.deadline = -1;
+    }
+    public ShootAutoCommand(FuelSubsystem fuel, DriveSubsystem drive, double shootFor) {
+      this.fuelSubsystem = fuel;
+      this.driveSubsystem = drive;
+      addRequirements(fuelSubsystem, driveSubsystem);
+      this.deadline = shootFor;
+    }
+
+    @Override
+    public void initialize() {
+      Distance distance = driveSubsystem.distanceToHub();
+      speed = fuelSubsystem.shooterSpeedForDistance(distance);
+      launchCommand = new LaunchSequence(fuelSubsystem, speed);
+      if (deadline >= 0) {
+        launchCommand = launchCommand.withTimeout(deadline);
+      }
+      CommandScheduler.getInstance().schedule(launchCommand);
+    }
+
+    @Override
+    public void execute() {}
+
+    @Override
+    public void end(boolean interrupted) {
+      launchCommand.cancel();
+    }
+
+    @Override
+    public boolean isFinished() {
+      return false;
+    }
+  }
+  public Command shootAuto(DriveSubsystem drive) {
+    return new ShootAutoCommand(this, drive);
+  }
+  public Command shootAuto(DriveSubsystem drive, double deadline) {
+    return new ShootAutoCommand(this, drive, deadline);
   }
 }

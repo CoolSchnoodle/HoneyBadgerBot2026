@@ -14,11 +14,13 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import static frc.robot.Constants.OperatorConstants.*;
 
 import frc.robot.commands.AutoDrive;
+import frc.robot.commands.DepotAuto;
 import frc.robot.commands.Drive;
 import frc.robot.commands.Eject;
 import frc.robot.commands.ExampleAuto;
 import frc.robot.commands.Intake;
 import frc.robot.commands.LaunchSequence;
+import frc.robot.commands.SpinUp;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.FuelSubsystem;
 
@@ -33,6 +35,7 @@ public class RobotContainer {
   // The robot's subsystems
   private final DriveSubsystem driveSubsystem = new DriveSubsystem();
   private final FuelSubsystem fuelSubsystem = new FuelSubsystem();
+  private double dpadAdjustment = 0;
 
   // The driver's controller
   private final CommandXboxController driverController = new CommandXboxController(
@@ -55,7 +58,13 @@ public class RobotContainer {
     // add additional auto modes you can add additional lines here with
     // autoChooser.addOption
     autoChooser.setDefaultOption("Boring auto", new ExampleAuto(driveSubsystem, fuelSubsystem));
-    autoChooser.addOption("Disruption auto", new SequentialCommandGroup(new AutoDrive(driveSubsystem, 0.7, 0).withTimeout(0.7), new AutoDrive(driveSubsystem, 1, 0)));
+    autoChooser.addOption("Disruption auto", new SequentialCommandGroup(
+      new AutoDrive(driveSubsystem, -0.4, 0).withTimeout(0.3),
+      new AutoDrive(driveSubsystem, -0.7, 0).withTimeout(0.3),
+      new AutoDrive(driveSubsystem, -1, 0).withTimeout(0.57),
+      new AutoDrive(driveSubsystem, 0, 1)
+    ));
+    autoChooser.addOption("Depot auto", new DepotAuto(driveSubsystem, fuelSubsystem));
     SmartDashboard.putData("Autonomous", autoChooser);
   }
 
@@ -74,10 +83,10 @@ public class RobotContainer {
 
     // While the left bumper on operator controller is held, intake Fuel
     operatorController.leftBumper().whileTrue(new Intake(fuelSubsystem));
-    // While the right bumper on the operator controller is held, spin up for 1
-    // second, then launch fuel. When the button is released, stop.
+    operatorController.rightTrigger(0.25)
+      .whileTrue(fuelSubsystem.shootAuto(driveSubsystem));
     operatorController.rightBumper()
-      .whileTrue(new LaunchSequence(fuelSubsystem, fuelSubsystem.shooterSpeedForDistance(driveSubsystem.distanceToHub())));
+      .whileTrue(new LaunchSequence(fuelSubsystem));
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
     operatorController.a().whileTrue(new Eject(fuelSubsystem));
@@ -89,10 +98,26 @@ public class RobotContainer {
         Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT -= Constants.FuelConstants.RETURN_SHOT_ADJUSTMENT;
       }));
 
-    driverController.leftTrigger()
+    operatorController.povUp().onTrue(new InstantCommand(() -> {
+      Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += 1;
+      dpadAdjustment += 1;
+    }));
+    operatorController.povDown().onTrue(new InstantCommand(() -> {
+      Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT -= 1;
+      dpadAdjustment -= 1;
+    }));
+    operatorController.x().onTrue(new InstantCommand(() -> {
+      Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT -= dpadAdjustment;
+      dpadAdjustment = 0;
+    }));
+    operatorController.y().whileTrue(new SpinUp(fuelSubsystem));
+
+    driverController.leftBumper()
       .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING /= 2))
       .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 2));
-    
+    driverController.rightBumper()
+      .onTrue(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING *= 2))
+      .onFalse(new InstantCommand(() -> Constants.OperatorConstants.DRIVE_SCALING /= 2));
     driverController.a()
       .whileTrue(driveSubsystem.rotateToHubCommand());
 
@@ -102,7 +127,6 @@ public class RobotContainer {
     // stick away from you (a negative value) drives the robot forwards (a positive
     // value)
     driveSubsystem.setDefaultCommand(new Drive(driveSubsystem, driverController));
-
     fuelSubsystem.setDefaultCommand(fuelSubsystem.run(() -> fuelSubsystem.stop()));
   }
 

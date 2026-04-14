@@ -66,7 +66,7 @@ public final class Constants {
     // help avoid turning too fast and beign difficult to control
 
     // Yeah so this one isn't actually constant, don't worry about it
-    public static double DRIVE_SCALING = 0.7;
+    public static double DRIVE_SCALING = .6;
     public static final double ROTATION_SCALING = .6;
   }
 }
