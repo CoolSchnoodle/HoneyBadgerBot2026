@@ -19,13 +19,13 @@ public class LaunchSequence extends SequentialCommandGroup {
     Command spinUp = new SpinUp(fuelSubsystem,
       SmartDashboard.getNumber("Spin-up launcher rps", Constants.FuelConstants.SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND))
       .until(() -> fuelSubsystem.launcherPIDReady());
-    Command launch = new Launch(fuelSubsystem,
+    Launch launch = new Launch(fuelSubsystem,
       SmartDashboard.getNumber("Launching launcher rps", Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND));
     addCommands(spinUp, launch);
   }
   public LaunchSequence(FuelSubsystem fuelSubsystem, double launchingRps) {
-    Command spinUp = new SpinUp(fuelSubsystem, launchingRps + 1.25)
-      .until(() -> fuelSubsystem.launcherPIDReady());;
+    Command spinUp = new SpinUp(fuelSubsystem, launchingRps + 0)
+      .until(() -> fuelSubsystem.launcherPIDReady());
     Launch launch = new Launch(fuelSubsystem, launchingRps); 
     addCommands(spinUp, launch);
   }

@@ -26,6 +26,7 @@ import frc.robot.commands.LaunchSequence;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Second;
 import static frc.robot.Constants.FuelConstants.*;
 
 public class FuelSubsystem extends SubsystemBase {
@@ -57,7 +58,11 @@ public class FuelSubsystem extends SubsystemBase {
     TalonFXConfiguration launcherConfig = new TalonFXConfiguration()
         .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
         .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT))
-        .withSlot0(new Slot0Configs().withKP(20));
+        .withSlot0(new Slot0Configs()
+          .withKS(-0.045)
+          .withKV(.0111)
+          .withKA(.006)
+        );
     intakeLauncherRoller.getConfigurator().apply(launcherConfig);
 
     // put default values for various fuel operations onto the dashboard
@@ -67,10 +72,14 @@ public class FuelSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Intaking feeder roller value", INTAKING_FEEDER_VOLTAGE);
     SmartDashboard.putNumber("Intaking intake roller value", INTAKING_INTAKE_VOLTAGE);
     SmartDashboard.putNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE);
-    //SmartDashboard.putNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE);
     SmartDashboard.putNumber("Launching launcher rotations per second", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND);
     SmartDashboard.putNumber("Spin-Up launcher velocity setpoint", SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND);
-    SmartDashboard.putNumber("Spin-up feeder roller value", SPIN_UP_FEEDER_VOLTAGE);
+    SmartDashboard.putNumber("Launcher/Spin-up/tolerance", SPIN_UP_TOLERANCE);
+    SmartDashboard.putNumber("Launcher/Lower bound tolerance", LOWER_TOLERANCE);
+    SmartDashboard.putNumber("Launcher/Upper bound tolerance", UPPER_TOLERANCE);
+    SmartDashboard.putNumber("Launcher/Real rps", 0.0);
+    SmartDashboard.putNumber("Launcher/Requested rps", 0.0);
+    SmartDashboard.putBoolean("Launcher/Active", false);
   }
 
   // A method to set the voltage of the intake roller
@@ -91,14 +100,29 @@ public class FuelSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("Launcher/Real rps", intakeLauncherRoller.getVelocity().getValueAsDouble());
   }
 
   public void setLauncherPID(double velocitySetpoint) {
+    SmartDashboard.putNumber("Launcher/Requested rps", velocitySetpoint);
     intakeLauncherRoller.setControl(new VelocityDutyCycle(RotationsPerSecond.of(velocitySetpoint)));    
   }
   
   public boolean launcherPIDReady() {
-    return intakeLauncherRoller.getClosedLoopError().getValueAsDouble() < 0.5;
+    double tolerance = SmartDashboard.getNumber("Launcher/Spin-up/tolerance", SPIN_UP_TOLERANCE);
+    double error = Math.abs(intakeLauncherRoller.getClosedLoopError().getValueAsDouble());
+    SmartDashboard.putNumber("Launcher/Spin-up/error", error);
+    boolean ready = error < tolerance;
+    SmartDashboard.putBoolean("Launcher/Spin-up/Ready", ready);
+    return ready;
+  }
+
+  public boolean launchingLauncherReady(double min, double max) {
+    SmartDashboard.putNumber("Launcher/Min rps", min);
+    SmartDashboard.putNumber("Launcher/Max rps", max);
+    double velocity = intakeLauncherRoller.getVelocity().getValueAsDouble();
+    SmartDashboard.putNumber("Launcher/Actual rps", velocity);
+    return velocity > min && velocity < max;
   }
 
   public double luancherVelocity() {
@@ -109,10 +133,10 @@ public class FuelSubsystem extends SubsystemBase {
     intakeLauncherRoller.set(speed);
   }
 
-  static final double NEAR_SETPOINT_DIST = 2.74;
-  static final double FAR_SETPOINT_DIST = 4;
-  static final double NEAR_SETPOINT_SPEED = Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND;
-  static final double FAR_SETPOINT_SPEED = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND * 1.2;
+  static final double FAR_SETPOINT_DIST = 3.85;
+  static final double NEAR_SETPOINT_DIST = 2.04;
+  static final double FAR_SETPOINT_SPEED = 65;
+  static final double NEAR_SETPOINT_SPEED = 49.6;
   public double shooterSpeedForDistance(Distance distance) {
     double nearSetpointDist = SmartDashboard.getNumber("Near shooter setpoint distance (m)", NEAR_SETPOINT_DIST);
     double farSetpointDist = SmartDashboard.getNumber("Far shooter setpoint dist (m)", FAR_SETPOINT_DIST);
@@ -123,7 +147,7 @@ public class FuelSubsystem extends SubsystemBase {
     double distMeters = distance.baseUnitMagnitude();
     double speed = nearSetpointSpeed + (slope * (distMeters - nearSetpointDist));
     SmartDashboard.putNumber("Calculated launcher speed", speed);
-    SmartDashboard.putNumber("Distance from hub", distMeters);
+    SmartDashboard.putNumber("Distance from hub for speed", distMeters);
     return speed;
   }
 

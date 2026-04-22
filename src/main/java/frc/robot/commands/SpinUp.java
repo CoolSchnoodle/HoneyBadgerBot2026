@@ -48,13 +48,14 @@ public class SpinUp extends Command {
       return;
     }
     launcherSpeedAdjustment = LAUNCHER_SPEED_ADJUSTMENT;
-    double velocitySetpoint = SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND + launcherSpeedAdjustment;
+    double velocitySetpoint = targetSpeed + launcherSpeedAdjustment;
     fuelSubsystem.setLauncherPID(velocitySetpoint);
   }
 
   // Called once the command ends or is interrupted. Stop the rollers
   @Override
   public void end(boolean interrupted) {
+    fuelSubsystem.setIntakeLauncherSpeed(0);
   }
 
   // Returns true when the command should end.

@@ -90,7 +90,7 @@ public class RobotContainer {
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
     operatorController.a().whileTrue(new Eject(fuelSubsystem));
-    operatorController.rightTrigger(0.25)
+    operatorController.x()
       .onTrue(new InstantCommand(() -> {
         Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += Constants.FuelConstants.RETURN_SHOT_ADJUSTMENT;
       }))

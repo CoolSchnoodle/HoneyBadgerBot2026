@@ -50,10 +50,11 @@ public final class Constants {
     public static final double FAR_SHOT_ADJUSTMENT = 12;
     public static final double RETURN_SHOT_ADJUSTMENT = 12;
     public static final double LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND = 51.4;
-    public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND + 1.25;
+    public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND + 0;
 
-    public static final double SPIN_UP_FEEDER_VOLTAGE = -6;
-    public static final double SPIN_UP_SECONDS = 1;
+    public static final double SPIN_UP_TOLERANCE = 2;
+    public static final double LOWER_TOLERANCE = 2;
+    public static final double UPPER_TOLERANCE = 2;
   }
 
   public static final class OperatorConstants {

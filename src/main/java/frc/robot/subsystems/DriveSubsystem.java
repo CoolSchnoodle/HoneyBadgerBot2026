@@ -123,8 +123,9 @@ public class DriveSubsystem extends SubsystemBase {
 
       SmartDashboard.putString("Last limelight reading", "Good");
       lastPose = estimate.pose;
+      Distance distanceToHub = distanceToHub();
+      SmartDashboard.putNumber("Distance to hub", distanceToHub.baseUnitMagnitude());
     }
-
   }
 
   public void driveArcade(double xSpeed, double zRotation) {
