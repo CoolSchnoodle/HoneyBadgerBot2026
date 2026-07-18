@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
  * numerical or boolean constants. This class should not be used for any other
@@ -47,11 +49,12 @@ public final class Constants {
     public static double LAUNCHER_SPEED_ADJUSTMENT = 0;
     public static final double FAR_SHOT_ADJUSTMENT = 12;
     public static final double RETURN_SHOT_ADJUSTMENT = 12;
-    public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = 51.4;
-    public static final double LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND = 51.4;
+    public static final double LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND = 30;
+    public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND + 0;
 
-    public static final double SPIN_UP_FEEDER_VOLTAGE = -6;
-    public static final double SPIN_UP_SECONDS = 1;
+    public static final double SPIN_UP_TOLERANCE = 2;
+    public static final double LOWER_TOLERANCE = 2;
+    public static final double UPPER_TOLERANCE = 2;
   }
 
   public static final class OperatorConstants {
@@ -64,7 +67,7 @@ public final class Constants {
     // help avoid turning too fast and beign difficult to control
 
     // Yeah so this one isn't actually constant, don't worry about it
-    public static double DRIVE_SCALING = 1;
-    public static final double ROTATION_SCALING = .6;
+    public static double DRIVE_SCALING = .3;
+    public static final double ROTATION_SCALING = .2;
   }
 }
