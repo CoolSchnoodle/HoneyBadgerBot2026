@@ -16,42 +16,59 @@ public class Launch extends Command {
 
   FuelSubsystem fuelSubsystem;
   double launcherSpeedAdjustment;
+  double launchingSpeed;
+  double feederVoltage;
 
+  public Launch(FuelSubsystem fuelSystem, double launchingSpeed) {
+    addRequirements(fuelSystem);
+    this.fuelSubsystem = fuelSystem;
+    launcherSpeedAdjustment = Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT;
+    this.launchingSpeed = launchingSpeed;
+    this.feederVoltage = SmartDashboard.getNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE);
+  }
   public Launch(FuelSubsystem fuelSystem) {
     addRequirements(fuelSystem);
     this.fuelSubsystem = fuelSystem;
     launcherSpeedAdjustment = Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT;
+    this.launchingSpeed = Constants.FuelConstants.LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND;
+    this.feederVoltage = SmartDashboard.getNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE);
   }
 
   // Called when the command is initially scheduled. Set the rollers to the
   // appropriate values for intaking
   @Override
   public void initialize() {
+    SmartDashboard.putBoolean("Launcher/Active", true);
     fuelSubsystem.setLauncherPID(
-      LAUNCHER_SPEED_ADJUSTMENT
-      + SmartDashboard.getNumber("Launching launcher rotations per second", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND));
-    //fuelSubsystem
-    //    .setIntakeLauncherRoller(
-    //        SmartDashboard.getNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE));
-    fuelSubsystem.setFeederRoller(SmartDashboard.getNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE));
+      launcherSpeedAdjustment + launchingSpeed);
+    fuelSubsystem.setFeederRoller(0);
   }
 
-  // Called every time the scheduler runs while the command is scheduled. This
-  // command doesn't require updating any values while running
   @Override
   public void execute() {
-    if (launcherSpeedAdjustment == LAUNCHER_SPEED_ADJUSTMENT) {
-      return;
+    double velocitySetpoint = launchingSpeed + launcherSpeedAdjustment;
+    speedAdjust: {
+      if (launcherSpeedAdjustment == LAUNCHER_SPEED_ADJUSTMENT) {
+        break speedAdjust;
+      }
+      launcherSpeedAdjustment = LAUNCHER_SPEED_ADJUSTMENT;
+      velocitySetpoint = launchingSpeed + launcherSpeedAdjustment;
+      fuelSubsystem.setLauncherPID(velocitySetpoint);
     }
-    launcherSpeedAdjustment = LAUNCHER_SPEED_ADJUSTMENT;
-    double velocitySetpoint = SmartDashboard.getNumber("SpinUp launcher velocity setpoint", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND) + launcherSpeedAdjustment;
-    fuelSubsystem.setLauncherPID(velocitySetpoint);
+    double min = velocitySetpoint - SmartDashboard.getNumber("Launcher/Lower bound tolerance", LOWER_TOLERANCE);
+    double max = velocitySetpoint + SmartDashboard.getNumber("Launcher/Upper bound tolerance", UPPER_TOLERANCE);
+    if (fuelSubsystem.launchingLauncherReady(min, max)) {
+      fuelSubsystem.setFeederRoller(feederVoltage);
+    } else {
+      fuelSubsystem.setFeederRoller(0);
+    }
   }
 
   // Called once the command ends or is interrupted. Stop the rollers
   @Override
   public void end(boolean interrupted) {
     fuelSubsystem.setIntakeLauncherSpeed(0);
+    SmartDashboard.putBoolean("Launcher/Active", false);
   }
 
   // Returns true when the command should end.

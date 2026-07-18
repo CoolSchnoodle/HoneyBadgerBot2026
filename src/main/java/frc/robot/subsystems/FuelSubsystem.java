@@ -13,10 +13,20 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants;
+import frc.robot.commands.Drive;
+import frc.robot.commands.LaunchSequence;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Second;
 import static frc.robot.Constants.FuelConstants.*;
 
 public class FuelSubsystem extends SubsystemBase {
@@ -25,6 +35,11 @@ public class FuelSubsystem extends SubsystemBase {
 
   /** Creates a new CANBallSubsystem. */
   public FuelSubsystem() {
+    SmartDashboard.putNumber("Near shooter setpoint distance (m)", NEAR_SETPOINT_DIST);
+    SmartDashboard.putNumber("Far shooter setpoint dist (m)", FAR_SETPOINT_DIST);
+    SmartDashboard.putNumber("Near shooter setpoint rps", NEAR_SETPOINT_SPEED);
+    SmartDashboard.putNumber("Far shooter setpoint rps", FAR_SETPOINT_SPEED);
+
     // create brushed motors for each of the motors on the launcher mechanism
     intakeLauncherRoller = new TalonFX(INTAKE_LAUNCHER_MOTOR_ID);
     feederRoller = new TalonFX(FEEDER_MOTOR_ID);
@@ -43,7 +58,11 @@ public class FuelSubsystem extends SubsystemBase {
     TalonFXConfiguration launcherConfig = new TalonFXConfiguration()
         .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
         .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT))
-        .withSlot0(new Slot0Configs().withKP(20));
+        .withSlot0(new Slot0Configs()
+          .withKS(-0.045)
+          .withKV(.0111)
+          .withKA(.006)
+        );
     intakeLauncherRoller.getConfigurator().apply(launcherConfig);
 
     // put default values for various fuel operations onto the dashboard
@@ -53,10 +72,14 @@ public class FuelSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Intaking feeder roller value", INTAKING_FEEDER_VOLTAGE);
     SmartDashboard.putNumber("Intaking intake roller value", INTAKING_INTAKE_VOLTAGE);
     SmartDashboard.putNumber("Launching feeder roller value", LAUNCHING_FEEDER_VOLTAGE);
-    //SmartDashboard.putNumber("Launching launcher roller value", LAUNCHING_LAUNCHER_VOLTAGE);
     SmartDashboard.putNumber("Launching launcher rotations per second", LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND);
     SmartDashboard.putNumber("Spin-Up launcher velocity setpoint", SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND);
-    SmartDashboard.putNumber("Spin-up feeder roller value", SPIN_UP_FEEDER_VOLTAGE);
+    SmartDashboard.putNumber("Launcher/Spin-up/tolerance", SPIN_UP_TOLERANCE);
+    SmartDashboard.putNumber("Launcher/Lower bound tolerance", LOWER_TOLERANCE);
+    SmartDashboard.putNumber("Launcher/Upper bound tolerance", UPPER_TOLERANCE);
+    SmartDashboard.putNumber("Launcher/Real rps", 0.0);
+    SmartDashboard.putNumber("Launcher/Requested rps", 0.0);
+    SmartDashboard.putBoolean("Launcher/Active", false);
   }
 
   // A method to set the voltage of the intake roller
@@ -77,14 +100,29 @@ public class FuelSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    SmartDashboard.putNumber("Launcher/Real rps", intakeLauncherRoller.getVelocity().getValueAsDouble());
   }
 
   public void setLauncherPID(double velocitySetpoint) {
+    SmartDashboard.putNumber("Launcher/Requested rps", velocitySetpoint);
     intakeLauncherRoller.setControl(new VelocityDutyCycle(RotationsPerSecond.of(velocitySetpoint)));    
   }
   
   public boolean launcherPIDReady() {
-    return intakeLauncherRoller.getClosedLoopError().getValueAsDouble() < 1;
+    double tolerance = SmartDashboard.getNumber("Launcher/Spin-up/tolerance", SPIN_UP_TOLERANCE);
+    double error = Math.abs(intakeLauncherRoller.getClosedLoopError().getValueAsDouble());
+    SmartDashboard.putNumber("Launcher/Spin-up/error", error);
+    boolean ready = error < tolerance;
+    SmartDashboard.putBoolean("Launcher/Spin-up/Ready", ready);
+    return ready;
+  }
+
+  public boolean launchingLauncherReady(double min, double max) {
+    SmartDashboard.putNumber("Launcher/Min rps", min);
+    SmartDashboard.putNumber("Launcher/Max rps", max);
+    double velocity = intakeLauncherRoller.getVelocity().getValueAsDouble();
+    SmartDashboard.putNumber("Launcher/Actual rps", velocity);
+    return velocity > min && velocity < max;
   }
 
   public double luancherVelocity() {
@@ -93,5 +131,74 @@ public class FuelSubsystem extends SubsystemBase {
 
   public void setIntakeLauncherSpeed(double speed) {
     intakeLauncherRoller.set(speed);
+  }
+
+  static final double FAR_SETPOINT_DIST = 3.85;
+  static final double NEAR_SETPOINT_DIST = 2.04;
+  static final double FAR_SETPOINT_SPEED = 65;
+  static final double NEAR_SETPOINT_SPEED = 49.6;
+  public double shooterSpeedForDistance(Distance distance) {
+    double nearSetpointDist = SmartDashboard.getNumber("Near shooter setpoint distance (m)", NEAR_SETPOINT_DIST);
+    double farSetpointDist = SmartDashboard.getNumber("Far shooter setpoint dist (m)", FAR_SETPOINT_DIST);
+    double nearSetpointSpeed = SmartDashboard.getNumber("Near shooter setpoint rps", NEAR_SETPOINT_SPEED);
+    double farSetpointSpeed = SmartDashboard.getNumber("Far shooter setpoint rps", FAR_SETPOINT_SPEED);
+
+    double slope = (farSetpointSpeed-nearSetpointSpeed) / (farSetpointDist-nearSetpointDist);
+    double distMeters = distance.baseUnitMagnitude();
+    double speed = nearSetpointSpeed + (slope * (distMeters - nearSetpointDist));
+    SmartDashboard.putNumber("Calculated launcher speed", speed);
+    SmartDashboard.putNumber("Distance from hub for speed", distMeters);
+    return speed;
+  }
+
+  class ShootAutoCommand extends Command {
+    FuelSubsystem fuelSubsystem;
+    DriveSubsystem driveSubsystem;
+    double speed;
+    double deadline;
+    Command launchCommand;
+
+    public ShootAutoCommand(FuelSubsystem fuel, DriveSubsystem drive) {
+      this.fuelSubsystem = fuel;
+      this.driveSubsystem = drive;
+      addRequirements(fuelSubsystem, driveSubsystem);
+      this.deadline = -1;
+    }
+    public ShootAutoCommand(FuelSubsystem fuel, DriveSubsystem drive, double shootFor) {
+      this.fuelSubsystem = fuel;
+      this.driveSubsystem = drive;
+      addRequirements(fuelSubsystem, driveSubsystem);
+      this.deadline = shootFor;
+    }
+
+    @Override
+    public void initialize() {
+      Distance distance = driveSubsystem.distanceToHub();
+      speed = fuelSubsystem.shooterSpeedForDistance(distance);
+      launchCommand = new LaunchSequence(fuelSubsystem, speed);
+      if (deadline >= 0) {
+        launchCommand = launchCommand.withTimeout(deadline);
+      }
+      CommandScheduler.getInstance().schedule(launchCommand);
+    }
+
+    @Override
+    public void execute() {}
+
+    @Override
+    public void end(boolean interrupted) {
+      launchCommand.cancel();
+    }
+
+    @Override
+    public boolean isFinished() {
+      return false;
+    }
+  }
+  public Command shootAuto(DriveSubsystem drive) {
+    return new ShootAutoCommand(this, drive);
+  }
+  public Command shootAuto(DriveSubsystem drive, double deadline) {
+    return new ShootAutoCommand(this, drive, deadline);
   }
 }

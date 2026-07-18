@@ -23,7 +23,7 @@ public class Drive extends Command {
     addRequirements(driveSystem);
     driveSubsystem = driveSystem;
     controller = driverController;
-    limiter = new SlewRateLimiter(0.4);
+    limiter = new SlewRateLimiter(1.5);
   }
 
   // Called when the command is initially scheduled.
@@ -41,7 +41,7 @@ public class Drive extends Command {
     double rotation = -controller.getRightX();
     double forward = -controller.getLeftY() * DRIVE_SCALING;
     forward = limiter.calculate(forward);
-    driveSubsystem.driveArcade(forward, rotation * ROTATION_SCALING);
+    driveSubsystem.driveArcade(forward, rotation * ROTATION_SCALING, false);
   }
 
   // Called once the command ends or is interrupted.
