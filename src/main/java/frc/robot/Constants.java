@@ -47,12 +47,12 @@ public final class Constants {
     //public static final double LAUNCHING_LAUNCHER_VOLTAGE = 10.6;
     // not final due to evil
     public static double LAUNCHER_SPEED_ADJUSTMENT = 0;
-    public static final double FAR_SHOT_ADJUSTMENT = 12;
-    public static final double RETURN_SHOT_ADJUSTMENT = 12;
+    public static final double FAR_SHOT_ADJUSTMENT = 10;
+    public static final double RETURN_SHOT_ADJUSTMENT = 20;
     public static final double LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND = 30;
     public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND + 0;
 
-    public static final double SPIN_UP_TOLERANCE = 2;
+    public static final double SPIN_UP_TOLERANCE = 15;
     public static final double LOWER_TOLERANCE = 2;
     public static final double UPPER_TOLERANCE = 2;
   }
@@ -67,7 +67,7 @@ public final class Constants {
     // help avoid turning too fast and beign difficult to control
 
     // Yeah so this one isn't actually constant, don't worry about it
-    public static double DRIVE_SCALING = .3;
-    public static final double ROTATION_SCALING = .2;
+    public static double DRIVE_SCALING = .5;
+    public static final double ROTATION_SCALING = .5;
   }
 }

@@ -55,7 +55,6 @@ public class RobotContainer {
     // add additional auto modes you can add additional lines here with
     // autoChooser.addOption
     autoChooser.addOption("Boring auto", new ExampleAuto(driveSubsystem, fuelSubsystem));
-    autoChooser.setDefaultOption("Disruption auto", new SequentialCommandGroup(new AutoDrive(driveSubsystem, 0.7, 0).withTimeout(0.7), new AutoDrive(driveSubsystem, 1, 0)));
     SmartDashboard.putData("Autonomous", autoChooser);
   }
 
@@ -73,22 +72,22 @@ public class RobotContainer {
   private void configureBindings() {
 
     // While the left bumper on operator controller is held, intake Fuel
-    operatorController.leftBumper().whileTrue(new Intake(fuelSubsystem));
+    driverController.leftBumper().whileTrue(new Intake(fuelSubsystem));
     // While the right bumper on the operator controller is held, spin up for 1
     // second, then launch fuel. When the button is released, stop.
-    operatorController.rightBumper()
+    driverController.rightBumper()
       .whileTrue(new LaunchSequence(fuelSubsystem));
     // While the A button is held on the operator controller, eject fuel back out
     // the intake
-    operatorController.a().whileTrue(new Eject(fuelSubsystem));
-    operatorController.rightTrigger(0.25)
+    driverController.a().whileTrue(new Eject(fuelSubsystem));
+    driverController.rightTrigger(0.25)
       .onTrue(new InstantCommand(() -> {
         Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += Constants.FuelConstants.FAR_SHOT_ADJUSTMENT;
       }))
       .onFalse(new InstantCommand(() -> {
         Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT -= Constants.FuelConstants.FAR_SHOT_ADJUSTMENT;
       }));
-    operatorController.y()
+    driverController.y()
       .onTrue(new InstantCommand(() -> {
         Constants.FuelConstants.LAUNCHER_SPEED_ADJUSTMENT += Constants.FuelConstants.RETURN_SHOT_ADJUSTMENT;
       }))
