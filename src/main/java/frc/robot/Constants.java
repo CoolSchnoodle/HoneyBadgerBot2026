@@ -35,8 +35,8 @@ public final class Constants {
     public static final int INTAKE_LAUNCHER_MOTOR_ID = 5;
 
     // Current limit and nominal voltage for fuel mechanism motors.
-    public static final int FEEDER_MOTOR_CURRENT_LIMIT = 60;
-    public static final int LAUNCHER_MOTOR_CURRENT_LIMIT = 60;
+    public static final int FEEDER_MOTOR_CURRENT_LIMIT = 40;
+    public static final int LAUNCHER_MOTOR_CURRENT_LIMIT = 40;
 
     // Voltage values for various fuel operations. These values may need to be tuned
     // based on exact robot construction.
@@ -47,12 +47,12 @@ public final class Constants {
     //public static final double LAUNCHING_LAUNCHER_VOLTAGE = 10.6;
     // not final due to evil
     public static double LAUNCHER_SPEED_ADJUSTMENT = 0;
-    public static final double FAR_SHOT_ADJUSTMENT = 10;
-    public static final double RETURN_SHOT_ADJUSTMENT = 20;
+    public static final double FAR_SHOT_ADJUSTMENT = 8;
+    public static final double RETURN_SHOT_ADJUSTMENT = 16;
     public static final double LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND = 30;
     public static final double SPIN_UP_LAUNCHER_ROTATIONS_PER_SECOND = LAUNCHING_LAUNCHER_ROTATIONS_PER_SECOND + 0;
 
-    public static final double SPIN_UP_TOLERANCE = 15;
+    public static final double SPIN_UP_TOLERANCE = 5;
     public static final double LOWER_TOLERANCE = 2;
     public static final double UPPER_TOLERANCE = 2;
   }
@@ -68,6 +68,6 @@ public final class Constants {
 
     // Yeah so this one isn't actually constant, don't worry about it
     public static double DRIVE_SCALING = .5;
-    public static final double ROTATION_SCALING = .5;
+    public static final double ROTATION_SCALING = .55;
   }
 }

@@ -48,7 +48,9 @@ public class FuelSubsystem extends SubsystemBase {
     // the config to the controller
     TalonFXConfiguration feederConfig = new TalonFXConfiguration()
       .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
-      .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(FEEDER_MOTOR_CURRENT_LIMIT));
+      .withCurrentLimits(new CurrentLimitsConfigs()
+        .withSupplyCurrentLimit(FEEDER_MOTOR_CURRENT_LIMIT)
+        .withStatorCurrentLimit(60));
     feederRoller.getConfigurator().apply(feederConfig);
 
     // create the configuration for the launcher roller, set a current limit, set
@@ -57,7 +59,9 @@ public class FuelSubsystem extends SubsystemBase {
 
     TalonFXConfiguration launcherConfig = new TalonFXConfiguration()
         .withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
-        .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT))
+        .withCurrentLimits(new CurrentLimitsConfigs()
+          .withSupplyCurrentLimit(LAUNCHER_MOTOR_CURRENT_LIMIT)
+          .withStatorCurrentLimit(60))
         .withSlot0(new Slot0Configs()
           .withKS(-0.045)
           .withKV(.0111)
